@@ -1,7 +1,7 @@
 {
   "name": "PriceWatch",
-  "short_name": "PriceWatch",
-  "description": "Monitoraggio prezzi Amazon e AliExpress",
+  "short_name": "Offertina",
+  "description": "Monitoraggio prezzi",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
