@@ -14,28 +14,31 @@ GH_TOKEN            = os.environ.get('GH_TOKEN', '')
 GIST_ID             = os.environ.get('GIST_ID', '')
 VAPID_PRIVATE_KEY   = os.environ.get('VAPID_PRIVATE_KEY', '')
 VAPID_CLAIMS_EMAIL  = os.environ.get('VAPID_CLAIMS_EMAIL', 'mailto:pricewatch@example.com')
+SCRAPER_API_KEY     = os.environ.get('SCRAPER_API_KEY', '')
 
 if not all([GH_TOKEN, GIST_ID, VAPID_PRIVATE_KEY]):
     print("❌ Variabili d'ambiente mancanti: GH_TOKEN, GIST_ID, VAPID_PRIVATE_KEY")
     sys.exit(1)
 
-# ── Headers per scraping ────────────────────────────────────────────────────
-UA_LIST = [
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-]
-
-def get_headers():
-    return {
-        'User-Agent': random.choice(UA_LIST),
-        'Accept-Language': 'it-IT,it;q=0.9,en-US;q=0.8,en;q=0.7',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
-        'Cache-Control': 'no-cache',
-    }
+# ── Fetch via ScraperAPI (bypassa blocchi anti-bot) ─────────────────────────
+def fetch_url(url, render_js=False):
+    """Scarica una pagina tramite ScraperAPI se disponibile, altrimenti diretto."""
+    if SCRAPER_API_KEY:
+        params = {
+            'api_key': SCRAPER_API_KEY,
+            'url': url,
+            'country_code': 'it',
+        }
+        if render_js:
+            params['render'] = 'true'
+        r = requests.get('http://api.scraperapi.com', params=params, timeout=60)
+    else:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            'Accept-Language': 'it-IT,it;q=0.9',
+        }
+        r = requests.get(url, headers=headers, timeout=15)
+    return r
 
 # ── GitHub Gist ─────────────────────────────────────────────────────────────
 def gist_get():
@@ -91,12 +94,7 @@ def parse_price(text):
 # ── Amazon scraping ──────────────────────────────────────────────────────────
 def get_amazon_price(url):
     try:
-        s = requests.Session()
-        # Prima richiesta per cookie
-        s.get('https://www.amazon.it', headers=get_headers(), timeout=10)
-        time.sleep(random.uniform(1, 3))
-        
-        r = s.get(url, headers=get_headers(), timeout=15)
+        r = fetch_url(url)
         if r.status_code == 503:
             print('  ⚠️  Amazon: CAPTCHA/503 rilevato')
             return None
@@ -142,7 +140,7 @@ def get_amazon_price(url):
 # ── AliExpress scraping ──────────────────────────────────────────────────────
 def get_aliexpress_price(url):
     try:
-        r = requests.get(url, headers=get_headers(), timeout=15)
+        r = fetch_url(url, render_js=True)
         text = r.text
         
         # Prova a estrarre il JSON embeddato nella pagina
