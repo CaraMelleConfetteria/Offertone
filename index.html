@@ -487,8 +487,8 @@ function toast(msg, ms = 3200) {
 function goto(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + name).classList.add('active');
-  // Mostra nav su prodotti e impostazioni
-  const showNav = name === 'home' || name === 'settings';
+  // Mostra nav su prodotti, impostazioni e aggiungi
+  const showNav = name === 'home' || name === 'settings' || name === 'add';
   document.getElementById('bnav-icons').style.display = showNav ? 'flex' : 'none';
   // Aggiorna icone attive
   document.querySelectorAll('.nbtn').forEach(b => b.classList.remove('on'));
