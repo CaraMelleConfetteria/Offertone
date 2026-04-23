@@ -240,7 +240,7 @@
     <div class="step-content">
       <label>GitHub Personal Access Token</label>
       <input class="finput" type="password" id="su-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
-      <div class="fhint">Scope richiesto: <code>gist</code> — <a href="https://github.com/settings/tokens/new?scopes=gist&description=PriceWatch" target="_blank">Crea token →</a></div>
+      <div class="fhint">Scope richiesto: <code>gist</code> — <a href="https://github.com/settings/tokens/new?scopes=gist&description=Offertine" target="_blank">Crea token →</a></div>
     </div>
   </div>
   <div class="step-row">
@@ -319,7 +319,7 @@
   <div class="fgroup">
     <label class="flabel">GitHub Token</label>
     <input class="finput" type="password" id="s-token" placeholder="ghp_...">
-    <div class="fhint"><a href="https://github.com/settings/tokens/new?scopes=gist&description=PriceWatch" target="_blank">Crea token con scope gist →</a></div>
+    <div class="fhint"><a href="https://github.com/settings/tokens/new?scopes=gist&description=Offertine" target="_blank">Crea token con scope gist →</a></div>
   </div>
   <div class="fgroup">
     <label class="flabel">Gist ID</label>
@@ -436,7 +436,7 @@ async function ghReq(method, path, body) {
 
 async function createGist() {
   const data = await ghReq('POST', '/gists', {
-    description: 'PriceWatch data', public: false,
+    description: 'Offertine data', public: false,
     files: { 'products.json': { content: '[]' }, 'subscriptions.json': { content: '[]' } }
   });
   LS.gistId = data.id;
@@ -471,7 +471,7 @@ async function saveToGist(prods, newSubs) {
   if (LS.gistId) {
     await ghReq('PATCH', '/gists/' + LS.gistId, body);
   } else {
-    const res = await ghReq('POST', '/gists', { ...body, description:'PriceWatch data', public:false });
+    const res = await ghReq('POST', '/gists', { ...body, description:'Offertine data', public:false });
     LS.gistId = res.id;
   }
 }
