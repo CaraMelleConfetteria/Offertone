@@ -254,8 +254,10 @@
 
     /* ── Setup overlay ── */
     #setup-overlay {
-      position: fixed; inset: 0; z-index: 50;
-      background: var(--bg);
+      position: fixed; top: 0; bottom: 0;
+      left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 480px;
+      z-index: 50; background: var(--bg);
       display: flex; flex-direction: column;
       padding: calc(24px + var(--sat)) 20px 24px;
       overflow-y: auto;
