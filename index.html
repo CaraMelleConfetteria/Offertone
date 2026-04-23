@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0a0f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PriceWatch">
+  <title>PriceWatch</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --surface2: #1c1c28;
+      --border: #252535;
+      --text: #e8eaf0;
+      --muted: #5a6080;
+      --accent: #f0b429;
+      --green: #22c55e;
+      --red: #f43f5e;
+      --amazon: #ff9900;
+      --ali: #e43226;
+      --r: 14px;
+      --sab: env(safe-area-inset-bottom, 0px);
+      --sat: env(safe-area-inset-top, 0px);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      max-width: 480px;
+      margin: 0 auto;
+      overflow-x: hidden;
+    }
+
+    /* ── Header ── */
+    .hdr {
+      position: sticky; top: 0; z-index: 20;
+      background: var(--bg);
+      padding: calc(14px + var(--sat)) 20px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .hdr-left h1 {
+      font-size: 20px; font-weight: 800; letter-spacing: -0.5px; line-height: 1;
+    }
+    .hdr-left h1 em { color: var(--accent); font-style: normal; }
+    .hdr-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .hdr-badge {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 4px 10px;
+      font-size: 11px; font-weight: 600; color: var(--muted);
+    }
+    .hdr-badge.alert { background: rgba(34,197,94,.12); border-color: rgba(34,197,94,.3); color: var(--green); }
+
+    /* ── Screens ── */
+    .screen { display: none; padding: 16px 20px; padding-bottom: calc(80px + var(--sab)); min-height: 60vh; }
+    .screen.active { display: block; }
+
+    /* ── Bottom nav ── */
+    .bnav {
+      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 480px;
+      background: var(--surface); border-top: 1px solid var(--border);
+      display: flex; padding-bottom: var(--sab); z-index: 100;
+    }
+    .nbtn {
+      flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+      padding: 10px 0; background: none; border: none;
+      color: var(--muted); font-size: 10px; font-weight: 500; cursor: pointer;
+      transition: color .15s;
+    }
+    .nbtn.on { color: var(--accent); }
+    .nbtn svg { width: 22px; height: 22px; stroke-width: 1.8; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 16px; margin-bottom: 12px;
+      position: relative; overflow: hidden;
+      transition: border-color .2s;
+    }
+    .card.hit { border-color: rgba(34,197,94,.5); }
+    .card.hit::after {
+      content: ''; position: absolute; left: 0; top: 0;
+      width: 3px; height: 100%; background: var(--green);
+    }
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 14px; }
+    .card-name { font-size: 14px; font-weight: 600; line-height: 1.35; flex: 1; }
+    .badge {
+      font-size: 9px; font-weight: 800; padding: 3px 8px; border-radius: 20px;
+      letter-spacing: .4px; text-transform: uppercase; flex-shrink: 0;
+    }
+    .badge.amazon { background: rgba(255,153,0,.15); color: var(--amazon); }
+    .badge.aliexpress { background: rgba(228,50,38,.15); color: var(--ali); }
+
+    .price-row { display: flex; align-items: flex-end; justify-content: space-between; }
+    .price-big {
+      font-size: 32px; font-weight: 800; letter-spacing: -1.5px;
+      font-variant-numeric: tabular-nums; line-height: 1;
+    }
+    .price-big.hit  { color: var(--green); }
+    .price-big.miss { color: var(--text); }
+    .price-big.none { color: var(--muted); font-size: 24px; }
+    .price-target { font-size: 12px; color: var(--muted); text-align: right; }
+    .price-target strong { color: var(--accent); font-size: 14px; }
+
+    .card-footer {
+      margin-top: 12px; display: flex; align-items: center;
+      justify-content: space-between;
+    }
+    .card-footer a { font-size: 11px; color: var(--muted); text-decoration: none; }
+    .card-footer a:hover { color: var(--accent); }
+    .ts { font-size: 11px; color: var(--muted); }
+
+    .del-btn {
+      background: none; border: none; color: var(--muted); cursor: pointer;
+      padding: 6px; border-radius: 8px; transition: all .15s; line-height: 0;
+    }
+    .del-btn:hover { color: var(--red); background: rgba(244,63,94,.1); }
+
+    /* ── Empty state ── */
+    .empty {
+      text-align: center; padding: 64px 20px; color: var(--muted);
+    }
+    .empty-ico { font-size: 52px; margin-bottom: 16px; }
+    .empty h3 { font-size: 16px; color: var(--text); margin-bottom: 8px; font-weight: 600; }
+    .empty p { font-size: 13px; line-height: 1.6; }
+
+    /* ── Alert bar ── */
+    .alert-bar {
+      background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.25);
+      border-radius: var(--r); padding: 12px 16px; margin-bottom: 14px;
+      display: flex; align-items: center; gap: 10px;
+      font-size: 13px; font-weight: 500; color: var(--green);
+    }
+
+    /* ── Forms ── */
+    .flabel {
+      display: block; font-size: 11px; font-weight: 700;
+      color: var(--muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 7px;
+    }
+    .fgroup { margin-bottom: 16px; }
+    .finput {
+      width: 100%; background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 12px 14px;
+      color: var(--text); font-size: 15px; -webkit-appearance: none;
+      transition: border-color .15s;
+    }
+    .finput:focus { outline: none; border-color: var(--accent); }
+    .finput::placeholder { color: var(--muted); }
+    .fhint { font-size: 11px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+    .fhint a { color: var(--accent); }
+    .frow { display: flex; gap: 10px; }
+    .frow .fgroup { flex: 1; }
+    .ftag {
+      display: inline-block; margin-top: 4px; padding: 2px 8px;
+      background: rgba(240,180,41,.12); border: 1px solid rgba(240,180,41,.3);
+      border-radius: 20px; font-size: 11px; color: var(--accent); font-weight: 600;
+    }
+    .ftag.amazon { background: rgba(255,153,0,.12); border-color: rgba(255,153,0,.3); color: var(--amazon); }
+    .ftag.aliexpress { background: rgba(228,50,38,.12); border-color: rgba(228,50,38,.3); color: var(--ali); }
+
+    /* ── Buttons ── */
+    .btn {
+      width: 100%; padding: 14px; border-radius: var(--r); border: none;
+      font-size: 15px; font-weight: 700; cursor: pointer;
+      transition: opacity .15s, transform .1s; letter-spacing: -.2px;
+    }
+    .btn:active { transform: scale(.98); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+    .btn-primary { background: var(--accent); color: #000; }
+    .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    .btn-danger { background: rgba(244,63,94,.1); color: var(--red); border: 1px solid rgba(244,63,94,.25); margin-top: 8px; }
+    .btn + .btn { margin-top: 10px; }
+
+    /* ── Settings ── */
+    .sec-title {
+      font-size: 11px; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .8px;
+      margin: 22px 0 10px; display: flex; align-items: center; gap: 8px;
+    }
+    .sec-title:first-child { margin-top: 0; }
+    .sec-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    .notif-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 16px; margin-bottom: 14px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .notif-card.active-notif { border-color: rgba(34,197,94,.4); background: rgba(34,197,94,.06); }
+    .notif-ico { font-size: 30px; line-height: 1; flex-shrink: 0; }
+    .notif-info h4 { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+    .notif-info p { font-size: 12px; color: var(--muted); line-height: 1.4; }
+
+    .info-box {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 14px 16px;
+      font-size: 12px; color: var(--muted); line-height: 1.7;
+    }
+    .info-box code {
+      background: var(--surface2); border: 1px solid var(--border);
+      padding: 1px 5px; border-radius: 4px; font-size: 11px; color: var(--text);
+    }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed; bottom: 88px; left: 50%; z-index: 999;
+      transform: translateX(-50%) translateY(12px);
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); padding: 10px 18px; border-radius: 20px;
+      font-size: 13px; opacity: 0; transition: all .25s;
+      white-space: nowrap; max-width: 92vw; pointer-events: none;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── Spinner ── */
+    .spin {
+      display: inline-block; width: 15px; height: 15px;
+      border: 2px solid rgba(0,0,0,.2); border-top-color: #000;
+      border-radius: 50%; animation: spin .5s linear infinite;
+      vertical-align: middle; margin-right: 6px;
+    }
+    .btn-secondary .spin, .btn-danger .spin {
+      border-color: rgba(255,255,255,.2); border-top-color: var(--text);
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Setup overlay ── */
+    #setup-overlay {
+      position: fixed; inset: 0; z-index: 50;
+      background: var(--bg);
+      display: flex; flex-direction: column;
+      padding: calc(24px + var(--sat)) 20px 24px;
+      overflow-y: auto;
+    }
+    #setup-overlay.hidden { display: none; }
+    .setup-logo { font-size: 48px; margin-bottom: 20px; text-align: center; }
+    .setup-title { font-size: 26px; font-weight: 800; letter-spacing: -1px; text-align: center; margin-bottom: 6px; }
+    .setup-title em { color: var(--accent); font-style: normal; }
+    .setup-desc { font-size: 14px; color: var(--muted); text-align: center; margin-bottom: 32px; line-height: 1.5; }
+    .step-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 20px; }
+    .step-num {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--accent); color: #000;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 800; flex-shrink: 0; margin-top: 2px;
+    }
+    .step-content { flex: 1; }
+    .step-content label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+    .step-content .fhint { margin-top: 5px; }
+  </style>
+</head>
+<body>
+
+<!-- ── Setup Overlay ── -->
+<div id="setup-overlay">
+  <div class="setup-logo">📈</div>
+  <div class="setup-title">Price<em>Watch</em></div>
+  <div class="setup-desc">Monitoraggio prezzi Amazon e AliExpress con notifiche push</div>
+
+  <div class="step-row">
+    <div class="step-num">1</div>
+    <div class="step-content">
+      <label>GitHub Personal Access Token</label>
+      <input class="finput" type="password" id="su-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+      <div class="fhint">Scope richiesto: <code>gist</code> — <a href="https://github.com/settings/tokens/new?scopes=gist&description=PriceWatch" target="_blank">Crea token →</a></div>
+    </div>
+  </div>
+
+  <div class="step-row">
+    <div class="step-num">2</div>
+    <div class="step-content">
+      <label>VAPID Public Key</label>
+      <input class="finput" type="text" id="su-vapid" placeholder="BNsxq3...">
+      <div class="fhint">Generata con <code>python setup_keys.py</code> (vedi README)</div>
+    </div>
+  </div>
+
+  <div class="step-row">
+    <div class="step-num">3</div>
+    <div class="step-content">
+      <label>Gist ID (opzionale)</label>
+      <input class="finput" type="text" id="su-gist" placeholder="Lascia vuoto per crearne uno nuovo">
+      <div class="fhint">Se hai già un Gist esistente, incolla qui l'ID</div>
+    </div>
+  </div>
+
+  <button class="btn btn-primary" id="su-btn" onclick="completeSetup()" style="margin-top:8px">
+    Inizia →
+  </button>
+</div>
+
+<!-- ── Header ── -->
+<div class="hdr">
+  <div class="hdr-left">
+    <h1>Price<em>Watch</em></h1>
+    <div class="hdr-sub" id="hdr-sub">Monitoraggio prezzi</div>
+  </div>
+  <div class="hdr-badge" id="hdr-badge">0 prodotti</div>
+</div>
+
+<!-- ── Screen: Home ── -->
+<div class="screen active" id="screen-home">
+  <div id="prod-list"></div>
+</div>
+
+<!-- ── Screen: Add ── -->
+<div class="screen" id="screen-add">
+  <div class="fgroup">
+    <label class="flabel">URL Prodotto</label>
+    <input class="finput" type="url" id="in-url"
+      placeholder="https://www.amazon.it/... oppure aliexpress.com/..."
+      oninput="onUrlInput(this.value)">
+    <div id="url-hint" class="fhint">Incolla il link dalla pagina prodotto</div>
+  </div>
+
+  <div class="fgroup">
+    <label class="flabel">Nome prodotto</label>
+    <input class="finput" type="text" id="in-name" placeholder="Es. Cuffie Sony WH-1000XM5">
+  </div>
+
+  <div class="frow">
+    <div class="fgroup">
+      <label class="flabel">Target (€)</label>
+      <input class="finput" type="number" id="in-target" placeholder="29.99" step="0.01" min="0">
+      <div class="fhint">Prezzo al quale vuoi essere avvisato</div>
+    </div>
+    <div class="fgroup">
+      <label class="flabel">Attuale (€)</label>
+      <input class="finput" type="number" id="in-current" placeholder="35.00" step="0.01" min="0">
+      <div class="fhint">Opzionale</div>
+    </div>
+  </div>
+
+  <button class="btn btn-primary" id="add-btn" onclick="addProduct()">
+    Aggiungi Prodotto
+  </button>
+</div>
+
+<!-- ── Screen: Settings ── -->
+<div class="screen" id="screen-settings">
+
+  <div class="sec-title">Notifiche Push</div>
+  <div class="notif-card" id="notif-card">
+    <div class="notif-ico" id="notif-ico">🔔</div>
+    <div class="notif-info">
+      <h4 id="notif-title">Notifiche non attive</h4>
+      <p id="notif-desc">Attiva le notifiche per ricevere alert sul telefono</p>
+    </div>
+  </div>
+  <button class="btn btn-primary" id="notif-btn" onclick="enablePush()">
+    Attiva Notifiche Push
+  </button>
+
+  <div class="sec-title" style="margin-top:24px">Account</div>
+  <div class="fgroup">
+    <label class="flabel">GitHub Token</label>
+    <input class="finput" type="password" id="s-token" placeholder="ghp_...">
+    <div class="fhint"><a href="https://github.com/settings/tokens/new?scopes=gist&description=PriceWatch" target="_blank">Crea token con scope gist →</a></div>
+  </div>
+  <div class="fgroup">
+    <label class="flabel">Gist ID</label>
+    <input class="finput" type="text" id="s-gist" placeholder="abc123...">
+    <div class="fhint" id="gist-link"></div>
+  </div>
+  <div class="fgroup">
+    <label class="flabel">VAPID Public Key</label>
+    <input class="finput" type="text" id="s-vapid" placeholder="BNsxq3...">
+  </div>
+  <button class="btn btn-secondary" onclick="saveSettings()">Salva impostazioni</button>
+  <button class="btn btn-danger" onclick="nukeData()">Cancella dati locali</button>
+
+  <div class="sec-title" style="margin-top:24px">Info</div>
+  <div class="info-box">
+    I prezzi vengono controllati ogni 6 ore tramite <strong>GitHub Actions</strong>.<br>
+    I dati sono in un <strong>Gist privato</strong> sul tuo account.<br>
+    <br>
+    Per attivare il controllo automatico, aggiungi questi <strong>GitHub Secrets</strong> nel repo:<br>
+    <code>GH_TOKEN</code> · <code>GIST_ID</code> · <code>VAPID_PRIVATE_KEY</code> · <code>VAPID_CLAIMS_EMAIL</code>
+  </div>
+</div>
+
+<!-- ── Bottom nav ── -->
+<nav class="bnav">
+  <button class="nbtn on" id="nav-home" onclick="goto('home')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Prodotti
+  </button>
+  <button class="nbtn" id="nav-add" onclick="goto('add')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    Aggiungi
+  </button>
+  <button class="nbtn" id="nav-settings" onclick="goto('settings')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    Impostazioni
+  </button>
+</nav>
+
+<div id="toast"></div>
+
+<script>
+// ── Config helpers ─────────────────────────────────────────────────────────
+const LS = {
+  get token()  { return localStorage.getItem('pw_token')  || ''; },
+  get gistId() { return localStorage.getItem('pw_gist')   || ''; },
+  get vapid()  { return localStorage.getItem('pw_vapid')  || ''; },
+  get sub()    { return localStorage.getItem('pw_sub')    || ''; },
+  set token(v)  { localStorage.setItem('pw_token', v); },
+  set gistId(v) { localStorage.setItem('pw_gist', v); },
+  set vapid(v)  { localStorage.setItem('pw_vapid', v); },
+  set sub(v)    { localStorage.setItem('pw_sub', v); },
+};
+
+let products = [];
+
+// ── Utils ──────────────────────────────────────────────────────────────────
+function urlB64ToUint8(b64) {
+  const pad = '='.repeat((4 - b64.length % 4) % 4);
+  const raw = atob((b64 + pad).replace(/-/g,'+').replace(/_/g,'/'));
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
+function fmtPrice(v) {
+  if (v == null) return '—';
+  return '€' + parseFloat(v).toLocaleString('it-IT', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function fmtAge(iso) {
+  if (!iso) return 'mai';
+  const h = Math.floor((Date.now() - new Date(iso)) / 3600000);
+  if (h < 1) return 'poco fa';
+  if (h < 24) return h + 'h fa';
+  return Math.floor(h/24) + 'g fa';
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+
+function platform(url) {
+  if (!url) return null;
+  if (/amazon\./i.test(url))      return 'amazon';
+  if (/aliexpress\./i.test(url))  return 'aliexpress';
+  return null;
+}
+
+function toast(msg, ms = 3200) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), ms);
+}
+
+// ── Navigation ─────────────────────────────────────────────────────────────
+function goto(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nbtn').forEach(b => b.classList.remove('on'));
+  document.getElementById('screen-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('on');
+  const subs = { home:'Monitoraggio prezzi', add:'Aggiungi prodotto', settings:'Impostazioni' };
+  document.getElementById('hdr-sub').textContent = subs[name] || '';
+  if (name === 'settings') fillSettings();
+  if (name === 'home') render();
+}
+
+// ── Setup ──────────────────────────────────────────────────────────────────
+async function completeSetup() {
+  const token = document.getElementById('su-token').value.trim();
+  const vapid  = document.getElementById('su-vapid').value.trim();
+  const gist   = document.getElementById('su-gist').value.trim();
+
+  if (!token) { toast('⚠️ Inserisci il GitHub Token'); return; }
+  if (!vapid)  { toast('⚠️ Inserisci la VAPID Public Key'); return; }
+
+  LS.token = token;
+  LS.vapid  = vapid;
+  if (gist) LS.gistId = gist;
+
+  const btn = document.getElementById('su-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>Connessione...';
+
+  try {
+    if (!LS.gistId) await createGist();
+    await loadFromGist();
+    document.getElementById('setup-overlay').classList.add('hidden');
+    render();
+    toast('✅ Configurazione completata!');
+  } catch(e) {
+    toast('❌ ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Inizia →';
+  }
+}
+
+// ── GitHub Gist API ────────────────────────────────────────────────────────
+async function ghReq(method, path, body) {
+  const r = await fetch('https://api.github.com' + path, {
+    method,
+    headers: {
+      'Authorization': 'token ' + LS.token,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json'
+    },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  if (!r.ok) {
+    const e = await r.json().catch(() => ({}));
+    throw new Error(e.message || 'HTTP ' + r.status);
+  }
+  return r.json();
+}
+
+async function createGist() {
+  const data = await ghReq('POST', '/gists', {
+    description: 'PriceWatch data',
+    public: false,
+    files: {
+      'products.json':      { content: '[]' },
+      'subscriptions.json': { content: '[]' }
+    }
+  });
+  LS.gistId = data.id;
+  toast('✅ Gist creato: ' + data.id);
+}
+
+async function loadFromGist() {
+  if (!LS.token || !LS.gistId) return;
+  const data = await ghReq('GET', '/gists/' + LS.gistId);
+  if (data.files?.['products.json']?.content) {
+    products = JSON.parse(data.files['products.json'].content);
+  }
+}
+
+async function saveToGist(prods, newSubs) {
+  if (!LS.token) { toast('⚠️ Token mancante'); return; }
+
+  let subs = [];
+  if (newSubs !== undefined) {
+    subs = newSubs;
+  } else if (LS.gistId) {
+    try {
+      const cur = await ghReq('GET', '/gists/' + LS.gistId);
+      if (cur.files?.['subscriptions.json']?.content)
+        subs = JSON.parse(cur.files['subscriptions.json'].content);
+    } catch(e) {}
+  }
+
+  const body = {
+    files: {
+      'products.json':      { content: JSON.stringify(prods, null, 2) },
+      'subscriptions.json': { content: JSON.stringify(subs, null, 2) }
+    }
+  };
+
+  if (LS.gistId) {
+    await ghReq('PATCH', '/gists/' + LS.gistId, body);
+  } else {
+    const res = await ghReq('POST', '/gists', { ...body, description:'PriceWatch data', public:false });
+    LS.gistId = res.id;
+  }
+}
+
+// ── Products ───────────────────────────────────────────────────────────────
+function onUrlInput(url) {
+  const p = platform(url);
+  const hint = document.getElementById('url-hint');
+  if (p === 'amazon')     { hint.innerHTML = '<span class="ftag amazon">🟠 Amazon</span>'; }
+  else if (p === 'aliexpress') { hint.innerHTML = '<span class="ftag aliexpress">🔴 AliExpress</span>'; }
+  else { hint.innerHTML = 'Incolla il link dalla pagina prodotto'; hint.style.color=''; }
+}
+
+async function addProduct() {
+  const url     = document.getElementById('in-url').value.trim();
+  const name    = document.getElementById('in-name').value.trim();
+  const target  = parseFloat(document.getElementById('in-target').value);
+  const current = parseFloat(document.getElementById('in-current').value) || null;
+
+  if (!url)            { toast('⚠️ Inserisci l\'URL'); return; }
+  if (!name)           { toast('⚠️ Inserisci il nome'); return; }
+  if (!target || target <= 0) { toast('⚠️ Inserisci un prezzo target'); return; }
+  const plt = platform(url);
+  if (!plt) { toast('⚠️ URL non riconosciuto (Amazon o AliExpress)'); return; }
+
+  const btn = document.getElementById('add-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>Salvataggio...';
+
+  try {
+    const p = { id:uid(), name, url, platform:plt, target_price:target,
+                current_price:current, last_checked:null,
+                last_alert_price:null, added:new Date().toISOString() };
+    products.push(p);
+    await saveToGist(products);
+    ['in-url','in-name','in-target','in-current'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('url-hint').innerHTML = 'Incolla il link dalla pagina prodotto';
+    toast('✅ Prodotto aggiunto!');
+    goto('home');
+  } catch(e) {
+    products.pop();
+    toast('❌ ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Aggiungi Prodotto';
+  }
+}
+
+async function delProduct(id) {
+  if (!confirm('Rimuovere questo prodotto?')) return;
+  products = products.filter(p => p.id !== id);
+  try {
+    await saveToGist(products);
+    render();
+    toast('🗑️ Rimosso');
+  } catch(e) { toast('❌ ' + e.message); }
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────
+function render() {
+  const list = document.getElementById('prod-list');
+  const badge = document.getElementById('hdr-badge');
+  const n = products.length;
+
+  const alerts = products.filter(p => p.current_price != null && p.current_price <= p.target_price);
+  badge.textContent = n === 0 ? '0 prodotti' : n + (n===1?' prodotto':' prodotti');
+  badge.className = 'hdr-badge' + (alerts.length ? ' alert' : '');
+
+  if (n === 0) {
+    list.innerHTML = `<div class="empty">
+      <div class="empty-ico">📦</div>
+      <h3>Nessun prodotto monitorato</h3>
+      <p>Aggiungi prodotti da Amazon o AliExpress.<br>Riceverai una notifica quando il prezzo scende.</p>
+    </div>`;
+    return;
+  }
+
+  let html = '';
+  if (alerts.length) {
+    html += `<div class="alert-bar">🎉 ${alerts.length} prodotto${alerts.length>1?'i':''} sotto il prezzo target!</div>`;
+  }
+
+  products.forEach(p => {
+    const has = p.current_price != null;
+    const hit = has && p.current_price <= p.target_price;
+    const cls = !has ? 'none' : hit ? 'hit' : 'miss';
+    html += `
+    <div class="card${hit?' hit':''}">
+      <div class="card-top">
+        <div class="card-name">${esc(p.name)}</div>
+        <span class="badge ${p.platform}">${p.platform==='amazon'?'Amazon':'AliExpress'}</span>
+      </div>
+      <div class="price-row">
+        <div class="price-big ${cls}">${fmtPrice(p.current_price)}</div>
+        <div class="price-target">Target<br><strong>${fmtPrice(p.target_price)}</strong></div>
+      </div>
+      <div class="card-footer">
+        <span class="ts">Aggiornato ${fmtAge(p.last_checked)}</span>
+        <button class="del-btn" onclick="delProduct('${p.id}')" title="Rimuovi">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+            <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
+          </svg>
+        </button>
+      </div>
+      <div style="margin-top:10px">
+        <a href="${esc(p.url)}" target="_blank">Apri pagina prodotto →</a>
+      </div>
+    </div>`;
+  });
+  list.innerHTML = html;
+}
+
+// ── Settings ───────────────────────────────────────────────────────────────
+function fillSettings() {
+  document.getElementById('s-token').value = LS.token;
+  document.getElementById('s-gist').value  = LS.gistId;
+  document.getElementById('s-vapid').value  = LS.vapid;
+  const gl = document.getElementById('gist-link');
+  if (LS.gistId) gl.innerHTML = `<a href="https://gist.github.com/${LS.gistId}" target="_blank">Apri Gist →</a>`;
+  updatePushUI();
+}
+
+function saveSettings() {
+  const t = document.getElementById('s-token').value.trim();
+  const g = document.getElementById('s-gist').value.trim();
+  const v = document.getElementById('s-vapid').value.trim();
+  if (t) LS.token  = t;
+  if (g) LS.gistId = g;
+  if (v) LS.vapid  = v;
+  toast('✅ Salvato');
+  loadFromGist().then(render);
+}
+
+function nukeData() {
+  if (!confirm('Cancellare tutti i dati locali?')) return;
+  localStorage.clear();
+  products = [];
+  render();
+  toast('🗑️ Dati cancellati');
+  fillSettings();
+}
+
+// ── Push Notifications ─────────────────────────────────────────────────────
+function updatePushUI() {
+  const card  = document.getElementById('notif-card');
+  const ico   = document.getElementById('notif-ico');
+  const title = document.getElementById('notif-title');
+  const desc  = document.getElementById('notif-desc');
+  const btn   = document.getElementById('notif-btn');
+
+  if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+    ico.textContent = '🚫'; title.textContent = 'Non supportato';
+    desc.textContent = 'Browser non compatibile'; btn.disabled = true; return;
+  }
+
+  if (Notification.permission === 'denied') {
+    ico.textContent = '🚫'; title.textContent = 'Notifiche bloccate';
+    desc.textContent = 'Abilita le notifiche nelle impostazioni del browser';
+    btn.disabled = true; return;
+  }
+
+  if (Notification.permission === 'granted' && LS.sub) {
+    ico.textContent = '✅'; title.textContent = 'Notifiche attive';
+    desc.textContent = 'Riceverai notifiche push quando il prezzo scende';
+    card.classList.add('active-notif');
+    btn.textContent = 'Rinnova sottoscrizione';
+    btn.className = 'btn btn-secondary';
+  }
+}
+
+async function enablePush() {
+  if (!LS.vapid)  { toast('⚠️ Configura prima la VAPID Public Key'); return; }
+  if (!LS.token || !LS.gistId) { toast('⚠️ Configura prima Token e Gist ID'); return; }
+
+  const btn = document.getElementById('notif-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>Attivazione...';
+
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlB64ToUint8(LS.vapid)
+    });
+    const subJson = sub.toJSON();
+    LS.sub = JSON.stringify(subJson);
+
+    // Update subscriptions in Gist
+    let subs = [];
+    try {
+      const cur = await ghReq('GET', '/gists/' + LS.gistId);
+      if (cur.files?.['subscriptions.json']?.content)
+        subs = JSON.parse(cur.files['subscriptions.json'].content);
+    } catch(e) {}
+    subs = subs.filter(s => s.endpoint !== subJson.endpoint);
+    subs.push(subJson);
+    await saveToGist(products, subs);
+
+    toast('🔔 Notifiche push attivate!');
+    updatePushUI();
+  } catch(e) {
+    if (e.name === 'NotAllowedError') toast('❌ Permesso negato');
+    else toast('❌ ' + e.message);
+  } finally {
+    btn.disabled = false;
+    if (!LS.sub) btn.textContent = 'Attiva Notifiche Push';
+  }
+}
+
+// ── Boot ───────────────────────────────────────────────────────────────────
+async function boot() {
+  // Register SW
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(console.warn);
+  }
+
+  // Check if already configured
+  if (LS.token && LS.vapid) {
+    document.getElementById('setup-overlay').classList.add('hidden');
+    try {
+      await loadFromGist();
+    } catch(e) { toast('⚠️ ' + e.message); }
+    render();
+  }
+}
+
+boot();
+</script>
+</body>
+</html>
