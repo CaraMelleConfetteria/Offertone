@@ -1,1 +1,1 @@
-Di necessità, virtù.
+Necessitatem in virtutem vertere.
