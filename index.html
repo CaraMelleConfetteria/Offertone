@@ -216,10 +216,12 @@
     .notif-card {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: var(--r); padding: 16px; margin-bottom: 14px;
-      display: flex; align-items: center; gap: 14px;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 10px; text-align: center;
     }
     .notif-card.active-notif { border-color: rgba(34,197,94,.4); background: rgba(34,197,94,.06); }
-    .notif-ico { font-size: 30px; line-height: 1; flex-shrink: 0; }
+    .notif-ico { line-height: 1; flex-shrink: 0; }
+    .notif-ico img { width: 42px; height: 42px; display: block; }
     .notif-info h4 { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
     .notif-info p { font-size: 12px; color: var(--muted); line-height: 1.4; }
 
@@ -232,17 +234,6 @@
       background: var(--surface2); border: 1px solid var(--border);
       padding: 1px 5px; border-radius: 4px; font-size: 11px; color: var(--text);
     }
-
-    /* ── Toast ── */
-    #toast {
-      position: fixed; bottom: 88px; left: 50%; z-index: 999;
-      transform: translateX(-50%) translateY(12px);
-      background: var(--surface2); border: 1px solid var(--border);
-      color: var(--text); padding: 10px 18px; border-radius: 20px;
-      font-size: 13px; opacity: 0; transition: all .25s;
-      white-space: nowrap; max-width: 92vw; pointer-events: none;
-    }
-    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
     .spin {
       display: inline-block; width: 15px; height: 15px;
@@ -426,7 +417,6 @@
   </button>
 </div>
 
-<div id="toast"></div>
 
 <script>
 // ── Config helpers ─────────────────────────────────────────────────────────
@@ -476,12 +466,6 @@ function platform(url) {
   return null;
 }
 
-function toast(msg, ms = 3200) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), ms);
-}
 
 // ── Navigation ─────────────────────────────────────────────────────────────
 function goto(name) {
@@ -506,8 +490,8 @@ async function completeSetup() {
   const vapid  = document.getElementById('su-vapid').value.trim();
   const gist   = document.getElementById('su-gist').value.trim();
 
-  if (!token) { toast('⚠️ Inserisci il GitHub Token'); return; }
-  if (!vapid)  { toast('⚠️ Inserisci la VAPID Public Key'); return; }
+  if (!token) { return; }
+  if (!vapid)  { return; }
 
   LS.token = token;
   LS.vapid  = vapid;
@@ -524,9 +508,7 @@ async function completeSetup() {
     document.getElementById('nav-add').style.display = 'flex';
     document.getElementById('bnav-icons').style.display = 'flex';
     render();
-    toast('✅ Configurazione completata!');
   } catch(e) {
-    toast('❌ ' + e.message);
   } finally {
     btn.disabled = false;
     btn.textContent = 'Inizia →';
@@ -562,7 +544,6 @@ async function createGist() {
     }
   });
   LS.gistId = data.id;
-  toast('✅ Gist creato: ' + data.id);
 }
 
 async function loadFromGist() {
@@ -574,7 +555,7 @@ async function loadFromGist() {
 }
 
 async function saveToGist(prods, newSubs) {
-  if (!LS.token) { toast('⚠️ Token mancante'); return; }
+  if (!LS.token) { return; }
 
   let subs = [];
   if (newSubs !== undefined) {
@@ -617,11 +598,11 @@ async function addProduct() {
   const target  = parseFloat(document.getElementById('in-target').value);
   const current = parseFloat(document.getElementById('in-current').value) || null;
 
-  if (!url)            { toast('⚠️ Inserisci l\'URL'); return; }
-  if (!name)           { toast('⚠️ Inserisci il nome'); return; }
-  if (!target || target <= 0) { toast('⚠️ Inserisci un prezzo target'); return; }
+  if (!url)            { return; }
+  if (!name)           { return; }
+  if (!target || target <= 0) { return; }
   const plt = platform(url);
-  if (!plt) { toast('⚠️ URL non riconosciuto (Amazon o AliExpress)'); return; }
+  if (!plt) { return; }
 
   const btn = document.getElementById('add-btn');
   btn.disabled = true;
@@ -635,11 +616,9 @@ async function addProduct() {
     await saveToGist(products);
     ['in-url','in-name','in-target','in-current'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('url-hint').innerHTML = 'Incolla il link dalla pagina prodotto';
-    toast('✅ Prodotto aggiunto!');
     goto('home');
   } catch(e) {
     products.pop();
-    toast('❌ ' + e.message);
   } finally {
     btn.disabled = false;
     btn.textContent = 'Aggiungi Prodotto';
@@ -652,8 +631,7 @@ async function delProduct(id) {
   try {
     await saveToGist(products);
     render();
-    toast('🗑️ Rimosso');
-  } catch(e) { toast('❌ ' + e.message); }
+  } catch(e) { }
 }
 
 // ── Render ─────────────────────────────────────────────────────────────────
@@ -726,7 +704,6 @@ function saveSettings() {
   if (t) LS.token  = t;
   if (g) LS.gistId = g;
   if (v) LS.vapid  = v;
-  toast('✅ Salvato');
   loadFromGist().then(render);
 }
 
@@ -735,7 +712,6 @@ function nukeData() {
   localStorage.clear();
   products = [];
   render();
-  toast('🗑️ Dati cancellati');
   fillSettings();
 }
 
@@ -788,16 +764,17 @@ async function disablePush() {
     await saveToGist(products, subs);
 
     LS.sub = '';
-    toast('🔕 Notifiche disattivate');
+    // Aggiorna immediatamente icona e UI
+    document.getElementById('notif-img').src = './Ring.svg';
+    document.getElementById('notif-card').classList.remove('active-notif');
     updatePushUI();
   } catch(e) {
-    toast('❌ ' + e.message);
   }
 }
 
 async function enablePush() {
-  if (!LS.vapid)  { toast('⚠️ Configura prima la VAPID Public Key'); return; }
-  if (!LS.token || !LS.gistId) { toast('⚠️ Configura prima Token e Gist ID'); return; }
+  if (!LS.vapid)  { return; }
+  if (!LS.token || !LS.gistId) { return; }
 
   const btn = document.getElementById('notif-btn');
   btn.disabled = true;
@@ -823,11 +800,12 @@ async function enablePush() {
     subs.push(subJson);
     await saveToGist(products, subs);
 
-    toast('Notifiche push attivate!');
+    document.getElementById('notif-img').src = './notifica.gif';
+    document.getElementById('notif-card').classList.add('active-notif');
     updatePushUI();
   } catch(e) {
-    if (e.name === 'NotAllowedError') toast('❌ Permesso negato');
-    else toast('❌ ' + e.message);
+    if (e.name === 'NotAllowedError')
+    else
   } finally {
     btn.disabled = false;
     if (!LS.sub) btn.textContent = 'Attiva Notifiche Push';
@@ -851,7 +829,7 @@ async function boot() {
     document.getElementById('bnav-icons').style.display = 'flex';
     try {
       await loadFromGist();
-    } catch(e) { toast('⚠️ ' + e.message); }
+    } catch(e) { }
     render();
   }
 }
