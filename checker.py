@@ -328,7 +328,7 @@ def main():
     if alerts and subs:
         print(f'\n🔔 Invio {len(alerts)} alert a {len(subs)} device(s)...')
         for alert in alerts:
-            title = f'Hallelujah'
+            title = f'Hallelujah!'
             body  = f'{alert["name"]} è sceso di prezzo!'
             for sub in subs:
                 send_push(sub, title, body, alert['url'], alert['id'])
