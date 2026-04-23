@@ -87,7 +87,9 @@
 
     /* home + settings — basso destra */
     .bnav-icons {
-      position: fixed; bottom: 30px; right: 20px;
+      position: fixed; bottom: calc(30px + env(safe-area-inset-bottom, 0px));
+      left: min(calc(50% + 220px), calc(100% - 20px));
+      transform: translateX(-100%);
       display: flex; gap: 6px; z-index: 100;
     }
     .nbtn {
