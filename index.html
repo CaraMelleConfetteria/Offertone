@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="PriceWatch">
-  <title>PriceWatch</title>
+  <title>Offertone</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
   <style>
@@ -260,9 +260,8 @@
 
 <!-- ── Setup Overlay ── -->
 <div id="setup-overlay">
-  <div class="setup-logo">📈</div>
-  <div class="setup-title">Price<em>Watch</em></div>
-  <div class="setup-desc">Monitoraggio prezzi Amazon e AliExpress con notifiche push</div>
+  <img src="./icon-192.png" style="width:72px;height:72px;border-radius:18px;margin-bottom:16px;display:block;margin-left:auto;margin-right:auto;">
+  <div class="setup-title">Offertone</div>
 
   <div class="step-row">
     <div class="step-num">1</div>
@@ -299,7 +298,7 @@
 <!-- ── Header ── -->
 <div class="hdr">
   <div class="hdr-left">
-    <h1>Price<em>Watch</em></h1>
+    <h1>Offertone</h1>
     <div class="hdr-sub" id="hdr-sub">Monitoraggio prezzi</div>
   </div>
   <div class="hdr-badge" id="hdr-badge">0 prodotti</div>
@@ -504,12 +503,15 @@ async function completeSetup() {
 
 // ── GitHub Gist API ────────────────────────────────────────────────────────
 async function ghReq(method, path, body) {
-  const r = await fetch('https://api.github.com' + path, {
+  // Aggiungi cache-busting sui GET per evitare dati obsoleti
+  const url = 'https://api.github.com' + path + (method === 'GET' ? '?_=' + Date.now() : '');
+  const r = await fetch(url, {
     method,
     headers: {
       'Authorization': 'token ' + LS.token,
       'Accept': 'application/vnd.github.v3+json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache',
     },
     body: body ? JSON.stringify(body) : undefined
   });
