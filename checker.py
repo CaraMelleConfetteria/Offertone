@@ -328,12 +328,13 @@ def main():
     if alerts and subs:
         print(f'\n🔔 Invio {len(alerts)} alert a {len(subs)} device(s)...')
         for alert in alerts:
-            title = f'💰 Prezzo giù: {alert["name"]}'
-            body  = f'€{alert["price"]:.2f} (target €{alert["target"]:.2f})'
+            title = f'Hallelujah!'
+            body  = f'{alert["name"]}'
             for sub in subs:
                 send_push(sub, title, body, alert['url'], alert['id'])
     elif alerts:
         print(f'\n⚠️  {len(alerts)} alert trovati ma nessuna subscription!')
+        
     else:
         print('\n✅ Nessun prezzo sotto target')
     
