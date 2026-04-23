@@ -658,7 +658,7 @@ function render() {
 
   let html = '';
   if (alerts.length) {
-    html += `<div class="alert-bar">🎉 ${alerts.length} prodotto${alerts.length>1?'i':''} sotto il prezzo target!</div>`;
+    html += `<div class="alert-bar">${alerts.length} prodotto${alerts.length>1?'i':''} sotto il prezzo target!</div>`;
   }
 
   products.forEach(p => {
