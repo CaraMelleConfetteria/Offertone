@@ -57,7 +57,6 @@
       font-size: 20px; font-weight: 900; letter-spacing: 1px; line-height: 1;
       text-transform: uppercase; color: var(--accent);
     }
-    .hdr-left h1 em { color: var(--accent); font-style: normal; }
     .hdr-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
     .hdr-badge {
       background: var(--surface2); border: 1px solid var(--border);
@@ -71,10 +70,6 @@
     .screen.active { display: block; }
 
     /* ── Bottom nav ── */
-    .bnav { display: none; } /* nascosto di default, mostrato solo su home */
-    .bnav.visible { display: block; }
-
-    /* + button — tondo, centrato, nel flusso della pagina */
     .fab {
       width: 52px; height: 52px; border-radius: 50%;
       background: var(--accent); border: none; cursor: pointer;
@@ -85,7 +80,6 @@
     .fab:active { opacity: .85; }
     .fab svg { width: 22px; height: 22px; stroke: #fff; stroke-width: 2.5; }
 
-    /* home + settings — basso destra */
     .bnav-icons {
       position: fixed; bottom: 30px; right: 20px;
       display: flex; gap: 6px; z-index: 100;
@@ -118,8 +112,6 @@
       content: ''; position: absolute; left: 0; top: 0;
       width: 3px; height: 100%; background: var(--green);
     }
-    .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 10px; }
-    .card-top-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
     .card-name { font-size: 14px; font-weight: 600; line-height: 1.35; flex: 1; }
     .badge {
       font-size: 9px; font-weight: 800; padding: 3px 8px; border-radius: 20px;
@@ -127,8 +119,6 @@
     }
     .badge.amazon { background: rgba(255,153,0,.15); color: var(--amazon); }
     .badge.aliexpress { background: rgba(228,50,38,.15); color: var(--ali); }
-
-    .price-row { display: flex; align-items: flex-end; justify-content: space-between; }
     .price-big {
       font-size: 32px; font-weight: 800; letter-spacing: -1.5px;
       font-variant-numeric: tabular-nums; line-height: 1;
@@ -138,13 +128,7 @@
     .price-big.none { color: var(--muted); font-size: 24px; }
     .price-target { font-size: 12px; color: var(--muted); text-align: right; }
     .price-target strong { color: var(--accent); font-size: 14px; }
-
-    .card-footer { margin-top: 10px; display: flex; align-items: center; justify-content: space-between; }
     .ts { font-size: 11px; color: var(--muted); }
-
-    .card-bottom {
-      margin-top: 10px; display: flex; align-items: center; gap: 6px;
-    }
     .del-btn {
       background: none; border: none; color: var(--muted); cursor: pointer;
       padding: 2px; border-radius: 4px; transition: all .15s; line-height: 0;
@@ -158,9 +142,7 @@
     .prod-link:hover { color: var(--accent); }
 
     /* ── Empty state ── */
-    .empty {
-      text-align: center; padding: 64px 20px; color: var(--muted);
-    }
+    .empty { text-align: center; padding: 64px 20px; color: var(--muted); }
     .empty-ico { font-size: 52px; margin-bottom: 16px; }
     .empty h3 { font-size: 16px; color: var(--text); margin-bottom: 8px; font-weight: 600; }
     .empty p { font-size: 13px; line-height: 1.6; }
@@ -232,16 +214,6 @@
     .notif-ico img { width: 42px; height: 42px; display: block; }
     .notif-info h4 { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
     .notif-info p { font-size: 12px; color: var(--muted); line-height: 1.4; }
-
-    .info-box {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--r); padding: 14px 16px;
-      font-size: 12px; color: var(--muted); line-height: 1.7;
-    }
-    .info-box code {
-      background: var(--surface2); border: 1px solid var(--border);
-      padding: 1px 5px; border-radius: 4px; font-size: 11px; color: var(--text);
-    }
 
     .spin {
       display: inline-block; width: 15px; height: 15px;
@@ -348,12 +320,10 @@
       oninput="onUrlInput(this.value)">
     <div id="url-hint" class="fhint">Incolla il link dalla pagina prodotto</div>
   </div>
-
   <div class="fgroup">
     <label class="flabel">Nome prodotto</label>
     <input class="finput" type="text" id="in-name" placeholder="Es. Cuffie Sony WH-1000XM5">
   </div>
-
   <div class="frow">
     <div class="fgroup">
       <label class="flabel">Target (€)</label>
@@ -366,7 +336,6 @@
       <div class="fhint">Opzionale</div>
     </div>
   </div>
-
   <button class="btn btn-primary" id="add-btn" onclick="addProduct()">
     Aggiungi Prodotto
   </button>
@@ -374,7 +343,6 @@
 
 <!-- ── Screen: Settings ── -->
 <div class="screen" id="screen-settings">
-
   <div class="sec-title">Notifiche Push</div>
   <div class="notif-card" id="notif-card">
     <div class="notif-ico" id="notif-ico"><img id="notif-img" src="./Ring.svg" style="width:36px;height:36px;"></div>
@@ -404,15 +372,6 @@
   </div>
   <button class="btn btn-secondary" onclick="saveSettings()">Salva impostazioni</button>
   <button class="btn btn-danger" onclick="nukeData()">Cancella dati locali</button>
-
-  <div class="sec-title" style="margin-top:24px">Info</div>
-  <div class="info-box">
-    I prezzi vengono controllati ogni 6 ore tramite <strong>GitHub Actions</strong>.<br>
-    I dati sono in un <strong>Gist privato</strong> sul tuo account.<br>
-    <br>
-    Per attivare il controllo automatico, aggiungi questi <strong>GitHub Secrets</strong> nel repo:<br>
-    <code>GH_TOKEN</code> · <code>GIST_ID</code> · <code>VAPID_PRIVATE_KEY</code> · <code>VAPID_CLAIMS_EMAIL</code>
-  </div>
 </div>
 
 <!-- ── Bottom nav ── -->
@@ -425,9 +384,7 @@
   </button>
 </div>
 
-
 <script>
-// ── Config helpers ─────────────────────────────────────────────────────────
 const LS = {
   get token()  { return localStorage.getItem('pw_token')  || ''; },
   get gistId() { return localStorage.getItem('pw_gist')   || ''; },
@@ -441,7 +398,6 @@ const LS = {
 
 let products = [];
 
-// ── Utils ──────────────────────────────────────────────────────────────────
 function urlB64ToUint8(b64) {
   const pad = '='.repeat((4 - b64.length % 4) % 4);
   const raw = atob((b64 + pad).replace(/-/g,'+').replace(/_/g,'/'));
@@ -469,20 +425,16 @@ function uid() { return Date.now().toString(36) + Math.random().toString(36).sli
 
 function platform(url) {
   if (!url) return null;
-  if (/amazon\./i.test(url))      return 'amazon';
-  if (/aliexpress\./i.test(url))  return 'aliexpress';
+  if (/amazon\./i.test(url)) return 'amazon';
+  if (/aliexpress\./i.test(url)) return 'aliexpress';
   return null;
 }
 
-
-// ── Navigation ─────────────────────────────────────────────────────────────
 function goto(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + name).classList.add('active');
-  // Mostra nav su prodotti, impostazioni e aggiungi
   const showNav = name === 'home' || name === 'settings' || name === 'add';
   document.getElementById('bnav-icons').style.display = showNav ? 'flex' : 'none';
-  // Aggiorna icone attive
   document.querySelectorAll('.nbtn').forEach(b => b.classList.remove('on'));
   const navBtn = document.getElementById('nav-' + name);
   if (navBtn) navBtn.classList.add('on');
@@ -492,23 +444,16 @@ function goto(name) {
   if (name === 'home') render();
 }
 
-// ── Setup ──────────────────────────────────────────────────────────────────
 async function completeSetup() {
   const token = document.getElementById('su-token').value.trim();
   const vapid  = document.getElementById('su-vapid').value.trim();
   const gist   = document.getElementById('su-gist').value.trim();
-
-  if (!token) { return; }
-  if (!vapid)  { return; }
-
-  LS.token = token;
-  LS.vapid  = vapid;
+  if (!token || !vapid) return;
+  LS.token = token; LS.vapid = vapid;
   if (gist) LS.gistId = gist;
-
   const btn = document.getElementById('su-btn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spin"></span>Connessione...';
-
   try {
     if (!LS.gistId) await createGist();
     await loadFromGist();
@@ -519,11 +464,10 @@ async function completeSetup() {
   } catch(e) {
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Inizia →';
+    btn.textContent = 'INIZIA';
   }
 }
 
-// ── GitHub Gist API ────────────────────────────────────────────────────────
 async function ghReq(method, path, body) {
   const url = 'https://api.github.com' + path + (method === 'GET' ? '?_=' + Date.now() : '');
   const r = await fetch(url, {
@@ -535,21 +479,14 @@ async function ghReq(method, path, body) {
     },
     body: body ? JSON.stringify(body) : undefined
   });
-  if (!r.ok) {
-    const e = await r.json().catch(() => ({}));
-    throw new Error(e.message || 'HTTP ' + r.status);
-  }
+  if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.message || 'HTTP ' + r.status); }
   return r.json();
 }
 
 async function createGist() {
   const data = await ghReq('POST', '/gists', {
-    description: 'PriceWatch data',
-    public: false,
-    files: {
-      'products.json':      { content: '[]' },
-      'subscriptions.json': { content: '[]' }
-    }
+    description: 'PriceWatch data', public: false,
+    files: { 'products.json': { content: '[]' }, 'subscriptions.json': { content: '[]' } }
   });
   LS.gistId = data.id;
 }
@@ -563,8 +500,7 @@ async function loadFromGist() {
 }
 
 async function saveToGist(prods, newSubs) {
-  if (!LS.token) { return; }
-
+  if (!LS.token) return;
   let subs = [];
   if (newSubs !== undefined) {
     subs = newSubs;
@@ -575,14 +511,12 @@ async function saveToGist(prods, newSubs) {
         subs = JSON.parse(cur.files['subscriptions.json'].content);
     } catch(e) {}
   }
-
   const body = {
     files: {
-      'products.json':      { content: JSON.stringify(prods, null, 2) },
+      'products.json': { content: JSON.stringify(prods, null, 2) },
       'subscriptions.json': { content: JSON.stringify(subs, null, 2) }
     }
   };
-
   if (LS.gistId) {
     await ghReq('PATCH', '/gists/' + LS.gistId, body);
   } else {
@@ -591,67 +525,50 @@ async function saveToGist(prods, newSubs) {
   }
 }
 
-// ── Products ───────────────────────────────────────────────────────────────
 function onUrlInput(url) {
   const p = platform(url);
   const hint = document.getElementById('url-hint');
-  if (p === 'amazon')     { hint.innerHTML = '<span class="ftag amazon">🟠 Amazon</span>'; }
+  if (p === 'amazon') { hint.innerHTML = '<span class="ftag amazon">🟠 Amazon</span>'; }
   else if (p === 'aliexpress') { hint.innerHTML = '<span class="ftag aliexpress">🔴 AliExpress</span>'; }
   else { hint.innerHTML = 'Incolla il link dalla pagina prodotto'; hint.style.color=''; }
 }
 
 async function addProduct() {
-  const url     = document.getElementById('in-url').value.trim();
-  const name    = document.getElementById('in-name').value.trim();
-  const target  = parseFloat(document.getElementById('in-target').value);
+  const url = document.getElementById('in-url').value.trim();
+  const name = document.getElementById('in-name').value.trim();
+  const target = parseFloat(document.getElementById('in-target').value);
   const current = parseFloat(document.getElementById('in-current').value) || null;
-
-  if (!url)            { return; }
-  if (!name)           { return; }
-  if (!target || target <= 0) { return; }
+  if (!url || !name || !target || target <= 0) return;
   const plt = platform(url);
-  if (!plt) { return; }
-
+  if (!plt) return;
   const btn = document.getElementById('add-btn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spin"></span>Salvataggio...';
-
   try {
     const p = { id:uid(), name, url, platform:plt, target_price:target,
-                current_price:current, last_checked:null,
-                last_alert_price:null, added:new Date().toISOString() };
+                current_price:current, last_checked:null, last_alert_price:null, added:new Date().toISOString() };
     products.push(p);
     await saveToGist(products);
     ['in-url','in-name','in-target','in-current'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('url-hint').innerHTML = 'Incolla il link dalla pagina prodotto';
     goto('home');
-  } catch(e) {
-    products.pop();
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Aggiungi Prodotto';
-  }
+  } catch(e) { products.pop(); }
+  finally { btn.disabled = false; btn.textContent = 'Aggiungi Prodotto'; }
 }
 
 async function delProduct(id) {
   if (!confirm('Rimuovere questo prodotto?')) return;
   products = products.filter(p => p.id !== id);
-  try {
-    await saveToGist(products);
-    render();
-  } catch(e) { }
+  try { await saveToGist(products); render(); } catch(e) {}
 }
 
-// ── Render ─────────────────────────────────────────────────────────────────
 function render() {
   const list = document.getElementById('prod-list');
   const badge = document.getElementById('hdr-badge');
   const n = products.length;
-
   const alerts = products.filter(p => p.current_price != null && p.current_price <= p.target_price);
   badge.textContent = n === 0 ? '0 prodotti' : n + (n===1?' prodotto':' prodotti');
   badge.className = 'hdr-badge' + (alerts.length ? ' alert' : '');
-
   if (n === 0) {
     list.innerHTML = `<div class="empty">
       <div class="empty-ico">📦</div>
@@ -660,12 +577,10 @@ function render() {
     </div>`;
     return;
   }
-
   let html = '';
   if (alerts.length) {
-    html += `<div class="alert-bar"><img src="./offerta.gif" style="width:48px;height:48px;flex-shrink:0"> ${alerts.length} prodotto${alerts.length>1?'i':''} sotto il prezzo target!</div>`;
+    html += `<div class="alert-bar"><img src="./offerta.gif" style="width:48px;height:48px;flex-shrink:0"> ${alerts.length} prodotto${alerts.length>1?'i':''} ${alerts.length>1?'sono scesi':'è sceso'} di prezzo!</div>`;
   }
-
   products.forEach(p => {
     const has = p.current_price != null;
     const hit = has && p.current_price <= p.target_price;
@@ -695,7 +610,6 @@ function render() {
   list.innerHTML = html;
 }
 
-// ── Settings ───────────────────────────────────────────────────────────────
 function fillSettings() {
   document.getElementById('s-token').value = LS.token;
   document.getElementById('s-gist').value  = LS.gistId;
@@ -709,39 +623,32 @@ function saveSettings() {
   const t = document.getElementById('s-token').value.trim();
   const g = document.getElementById('s-gist').value.trim();
   const v = document.getElementById('s-vapid').value.trim();
-  if (t) LS.token  = t;
+  if (t) LS.token = t;
   if (g) LS.gistId = g;
-  if (v) LS.vapid  = v;
+  if (v) LS.vapid = v;
   loadFromGist().then(render);
 }
 
 function nukeData() {
   if (!confirm('Cancellare tutti i dati locali?')) return;
-  localStorage.clear();
-  products = [];
-  render();
-  fillSettings();
+  localStorage.clear(); products = [];
+  render(); fillSettings();
 }
 
-// ── Push Notifications ─────────────────────────────────────────────────────
 function updatePushUI() {
   const card  = document.getElementById('notif-card');
-  const ico   = document.getElementById('notif-ico');
   const title = document.getElementById('notif-title');
   const desc  = document.getElementById('notif-desc');
   const btn   = document.getElementById('notif-btn');
-
   if (!('Notification' in window) || !('serviceWorker' in navigator)) {
     title.textContent = 'Non supportato';
     desc.textContent = 'Browser non compatibile'; btn.disabled = true; return;
   }
-
   if (Notification.permission === 'denied') {
     title.textContent = 'Notifiche bloccate';
     desc.textContent = 'Abilita le notifiche nelle impostazioni del browser';
     btn.disabled = true; return;
   }
-
   if (Notification.permission === 'granted' && LS.sub) {
     title.textContent = 'Notifiche attive';
     desc.textContent = 'Riceverai notifiche push quando il prezzo scende';
@@ -754,8 +661,6 @@ function updatePushUI() {
     btn.onclick = disablePush;
     return;
   }
-
-  // Default: notifiche non attive
   title.textContent = 'Notifiche non attive';
   desc.textContent = 'Attiva le notifiche per ricevere alert sul telefono';
   card.classList.remove('active-notif');
@@ -773,8 +678,6 @@ async function disablePush() {
     const reg = await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.getSubscription();
     if (sub) await sub.unsubscribe();
-
-    // Rimuovi dal Gist
     const subJson = JSON.parse(LS.sub);
     const cur = await ghReq('GET', '/gists/' + LS.gistId);
     let subs = [];
@@ -782,24 +685,18 @@ async function disablePush() {
       subs = JSON.parse(cur.files['subscriptions.json'].content);
     subs = subs.filter(s => s.endpoint !== subJson.endpoint);
     await saveToGist(products, subs);
-
     LS.sub = '';
-    // Aggiorna immediatamente icona e UI
     document.getElementById('notif-img').src = './Ring.svg';
     document.getElementById('notif-card').classList.remove('active-notif');
     updatePushUI();
-  } catch(e) {
-  }
+  } catch(e) {}
 }
 
 async function enablePush() {
-  if (!LS.vapid)  { return; }
-  if (!LS.token || !LS.gistId) { return; }
-
+  if (!LS.vapid || !LS.token || !LS.gistId) return;
   const btn = document.getElementById('notif-btn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spin"></span>Attivazione...';
-
   try {
     const reg = await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.subscribe({
@@ -808,8 +705,6 @@ async function enablePush() {
     });
     const subJson = sub.toJSON();
     LS.sub = JSON.stringify(subJson);
-
-    // Update subscriptions in Gist
     let subs = [];
     try {
       const cur = await ghReq('GET', '/gists/' + LS.gistId);
@@ -819,55 +714,38 @@ async function enablePush() {
     subs = subs.filter(s => s.endpoint !== subJson.endpoint);
     subs.push(subJson);
     await saveToGist(products, subs);
-
     document.getElementById('notif-img').src = './notifica.gif';
     document.getElementById('notif-card').classList.add('active-notif');
     updatePushUI();
-  } catch(e) {
-    console.error(e);
-  } finally {
-    btn.disabled = false;
-    if (!LS.sub) btn.textContent = 'Attiva Notifiche Push';
-  }
+  } catch(e) { console.error(e); }
+  finally { btn.disabled = false; if (!LS.sub) btn.textContent = 'Attiva Notifiche Push'; }
 }
 
-// ── Boot ───────────────────────────────────────────────────────────────────
 async function boot() {
-  // Nascondi nav finché non configurato
   document.getElementById('bnav-icons').style.display = 'none';
-
-  // Register SW
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(console.warn);
   }
-
-  // Check if already configured
   if (LS.token && LS.vapid) {
     document.getElementById('setup-overlay').classList.add('hidden');
     document.getElementById('nav-add').style.display = 'flex';
     document.getElementById('bnav-icons').style.display = 'flex';
-    try {
-      await loadFromGist();
-    } catch(e) { }
+    try { await loadFromGist(); } catch(e) {}
     render();
   }
 }
 
 boot();
 
-// Auto-aggiornamento ogni 5 minuti quando la PWA è aperta
 setInterval(async () => {
   if (document.visibilityState === 'visible' && LS.token && LS.gistId) {
-    await loadFromGist();
-    render();
+    await loadFromGist(); render();
   }
 }, 5 * 60 * 1000);
 
-// Aggiorna anche quando si torna in primo piano
 document.addEventListener('visibilitychange', async () => {
   if (document.visibilityState === 'visible' && LS.token && LS.gistId) {
-    await loadFromGist();
-    render();
+    await loadFromGist(); render();
   }
 });
 </script>
