@@ -804,8 +804,7 @@ async function enablePush() {
     document.getElementById('notif-card').classList.add('active-notif');
     updatePushUI();
   } catch(e) {
-    if (e.name === 'NotAllowedError')
-    else
+    console.error(e);
   } finally {
     btn.disabled = false;
     if (!LS.sub) btn.textContent = 'Attiva Notifiche Push';
