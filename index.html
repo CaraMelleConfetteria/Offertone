@@ -73,12 +73,12 @@
 
     /* + button — tondo, centrato, nel flusso della pagina */
     .fab {
-      width: 52px; height: 52px; border-radius: 50%;
+      width: 52px; height: 52px; border-radius: 0;
       background: var(--accent); border: none; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       box-shadow: 0 4px 14px rgba(249,115,22,.3);
       transition: opacity .15s;
-      margin: 16px auto 8px;
+      margin: 28px auto 8px;
     }
     .fab:active { opacity: .85; }
     .fab svg { width: 22px; height: 22px; stroke: #fff; stroke-width: 2.5; }
@@ -485,8 +485,8 @@ function toast(msg, ms = 3200) {
 function goto(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + name).classList.add('active');
-  // Mostra nav solo sulla schermata prodotti
-  const showNav = name === 'home';
+  // Mostra nav su prodotti e impostazioni
+  const showNav = name === 'home' || name === 'settings';
   document.getElementById('bnav-icons').style.display = showNav ? 'flex' : 'none';
   // Aggiorna icone attive
   document.querySelectorAll('.nbtn').forEach(b => b.classList.remove('on'));
