@@ -191,6 +191,11 @@ def get_aliexpress_price(url):
             text_decoded = text
         
         print(f'  🔍 HTTP status: {r.status_code}, HTML len: {len(text)}')
+        
+        # Debug: cerca qualsiasi numero che potrebbe essere un prezzo
+        price_contexts = re.findall(r'.{0,30}["\s]([1-9]\d{0,3}[.,]\d{2})["\s].{0,30}', text)[:8]
+        for ctx in price_contexts:
+            print(f'  💰 {ctx}')
 
         # Pattern sul testo decodificato
         patterns = [
