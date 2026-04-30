@@ -122,124 +122,87 @@ def parse_price(text):
             pass
     return None
 
-# ── Amazon scraping ──────────────────────────────────────────────────────────
+# ── Amazon scraping con Selenium ─────────────────────────────────────────────
 def get_amazon_price(url):
     try:
-        r = fetch_url(url)
-        if r.status_code == 503:
-            print('  ⚠️  Amazon: CAPTCHA/503 rilevato')
-            return None
-        
-        soup = BeautifulSoup(r.content, 'lxml')
-        
-        # Selettori in ordine di priorità
-        selectors = [
-            'span.a-price.a-text-price.a-size-medium.apexPriceToPay span.a-offscreen',
-            'span#priceblock_ourprice',
-            'span#priceblock_dealprice',
-            'span#priceblock_saleprice',
-            '.a-price.a-text-price span.a-offscreen',
-            '.a-price .a-offscreen',
-            'span[data-a-color="price"] span.a-offscreen',
-        ]
-        
-        for sel in selectors:
-            el = soup.select_one(sel)
-            if el:
-                price = parse_price(el.get_text())
-                if price and price > 0:
-                    return price
-        
-        # Fallback: whole + fraction
-        whole = soup.select_one('span.a-price-whole')
-        frac  = soup.select_one('span.a-price-fraction')
-        if whole:
-            raw = whole.get_text().strip().replace('.', '').replace(',', '')
-            if frac:
-                raw += '.' + frac.get_text().strip()
-            try:
-                return float(raw)
-            except ValueError:
-                pass
-        
-        print(f'  ⚠️  Amazon: prezzo non trovato (status {r.status_code})')
+        from selenium import webdriver
+        from selenium.webdriver.chrome.service import Service
+        from selenium.webdriver.common.by import By
+        from webdriver_manager.chrome import ChromeDriverManager
+        import time
+
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument('--lang=it-IT')
+        options.add_argument('--disable-blink-features=AutomationControlled')
+        options.add_experimental_option('excludeSwitches', ['enable-automation'])
+
+        driver = webdriver.Chrome(
+            service=Service(ChromeDriverManager().install()),
+            options=options
+        )
+        driver.get(url)
+        time.sleep(3)
+
+        # Prende il primo prezzo .a-offscreen che sia valido
+        els = driver.find_elements(By.CSS_SELECTOR, '.a-price .a-offscreen')
+        for el in els:
+            txt = el.get_attribute('innerHTML') or el.text
+            price = parse_price(txt)
+            if price and 1 < price < 10000:
+                driver.quit()
+                return price
+
+        driver.quit()
+        print('  ⚠️  Amazon: prezzo non trovato')
         return None
     except Exception as e:
         print(f'  ❌ Amazon error: {e}')
         return None
 
-# ── AliExpress scraping ──────────────────────────────────────────────────────
+# ── AliExpress scraping con Selenium ─────────────────────────────────────────
 def get_aliexpress_price(url):
     try:
-        from urllib.parse import unquote
+        from selenium import webdriver
+        from selenium.webdriver.chrome.service import Service
+        from selenium.webdriver.common.by import By
+        from webdriver_manager.chrome import ChromeDriverManager
+        import time
+
         match = re.search(r'/item/(\d+)', url)
         if not match:
-            print('  ⚠️  AliExpress: item ID non trovato nell\'URL')
+            print('  ⚠️  AliExpress: item ID non trovato')
             return None
         item_id = match.group(1)
-
-        # Usa URL pulito in inglese — meno redirect
         clean_url = f'https://www.aliexpress.com/item/{item_id}.html'
-        
-        r = fetch_url(clean_url, render_js=True)
-        text = r.text
-        
-        # Decodifica URL encoding se presente
-        if '%22' in text:
-            text_decoded = unquote(text)
-        else:
-            text_decoded = text
-        
-        print(f'  🔍 HTTP status: {r.status_code}, HTML len: {len(text)}')
-        
-        # Debug: cerca qualsiasi numero che potrebbe essere un prezzo
-        price_contexts = re.findall(r'.{0,30}["\s]([1-9]\d{0,3}[.,]\d{2})["\s].{0,30}', text)[:8]
-        for ctx in price_contexts:
-            print(f'  💰 {ctx}')
 
-        # Pattern sul testo decodificato
-        patterns = [
-            r'"originalPrice"\s*:\s*\{[^}]*"value"\s*:\s*"?([\d.]+)"?',
-            r'"salePrice"\s*:\s*\{[^}]*"value"\s*:\s*"?([\d.]+)"?',
-            r'"minActivityAmount"\s*:\s*"?([\d.]+)"?',
-            r'"minAmount"\s*:\s*"?([\d.]+)"?',
-            r'"actPrice"\s*:\s*"?([\d.]+)"?',
-            r'"currentPrice"\s*:\s*"?([\d.]+)"?',
-            r'"price"\s*:\s*"([\d.]+)"',
-            r'promotionPrice["\s:]+(["\']?)([\d.]+)\1',
-            r'"discountedPrice"\s*:\s*"?([\d.]+)"?',
-            r'"formatedPrice"\s*:\s*"[€$]?\s*([\d,]+\.?\d*)"',
-            r'"formatedActivityPrice"\s*:\s*"[€$]?\s*([\d,]+\.?\d*)"',
-        ]
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument('--lang=it-IT')
+        options.add_argument('--disable-blink-features=AutomationControlled')
+        options.add_experimental_option('excludeSwitches', ['enable-automation'])
 
-        for txt in [text_decoded, text]:
-            for pat in patterns:
-                m = re.search(pat, txt, re.IGNORECASE)
-                if m:
-                    val_str = m.group(2) if m.lastindex and m.lastindex >= 2 else m.group(1)
-                    try:
-                        v = float(val_str.replace(',', '.'))
-                        if 0.1 < v < 10000:
-                            print(f'  → Pattern trovato → €{v}')
-                            return v
-                    except ValueError:
-                        continue
+        driver = webdriver.Chrome(
+            service=Service(ChromeDriverManager().install()),
+            options=options
+        )
+        driver.get(clean_url)
+        time.sleep(5)
 
-        # Fallback BeautifulSoup
-        soup = BeautifulSoup(text, 'lxml')
-        for sel in [
-            'span.uniform-banner-box-price',
-            'div.uniform-banner-box-price',
-            '.product-price-value',
-            'span[class*="Price_price"]',
-            'div[class*="price--"]',
-        ]:
-            el = soup.select_one(sel)
-            if el:
-                price = parse_price(el.get_text())
+        for sel in ['div[class*="price"]', 'span[class*="price"]', '.product-price-value']:
+            els = driver.find_elements(By.CSS_SELECTOR, sel)
+            for el in els:
+                txt = el.text.strip()
+                price = parse_price(txt.split('/')[0])  # prende solo la parte prima di "/"
                 if price and 0.1 < price < 10000:
+                    driver.quit()
                     return price
 
+        driver.quit()
         print('  ⚠️  AliExpress: prezzo non trovato')
         return None
     except Exception as e:
